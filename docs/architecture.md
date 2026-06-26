@@ -71,10 +71,11 @@ machine observable without pretending full recovery has happened.
 
 `tendril --demo` runs without network setup. It creates an in-memory mesh, registers two
 simulated Pulse nodes, refreshes one heartbeat, marks the stale node as recovering, and prints a
-JSON report.
+JSON report. `tendril --demo-report <path>` writes the same proof path as static HTML.
 
 ```bash
 cargo run -p tendril-daemon --bin tendril -- --demo
+cargo run -p tendril-daemon --bin tendril -- --demo-report target/tendril-demo-report.html
 ```
 
 This is the portfolio proof path for the current MVP.

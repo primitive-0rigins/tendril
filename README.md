@@ -22,6 +22,7 @@ Working today:
 6. UDP listener path that accepts Pulse announcements and sends mesh invites
 7. Standalone Pulse beacon binary
 8. Self-contained `tendril --demo` mode with JSON output
+9. Static HTML demo report
 
 ---
 
@@ -146,10 +147,12 @@ Run the self-contained local demo:
 
 ```bash
 cargo run -p tendril-daemon --bin tendril -- --demo
+cargo run -p tendril-daemon --bin tendril -- --demo-report target/tendril-demo-report.html
 ```
 
 The demo simulates two Pulse beacons joining an in-memory mesh, refreshes one heartbeat,
 marks the stale node as recovering, and prints a JSON report.
+The report command writes the same proof path as a static HTML artifact.
 
 ### Run Tendril (mesh daemon)
 
@@ -208,6 +211,7 @@ heartbeat_interval_secs = 10
 - [x] Workspace compiles with serializable protocol types
 - [x] Unit tests for protocol, node state, mesh registry, and recovery helpers
 - [x] Self-contained demo mode
+- [x] Static HTML demo report
 - [x] Local Pulse announcement and MeshInvite protocol path
 - [x] Wake-on-LAN packet path for known MAC addresses
 - [ ] WireGuard keypair generation via `boringtun` (per-node, encrypted at rest)

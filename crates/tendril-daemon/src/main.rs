@@ -13,8 +13,20 @@ async fn main() -> Result<()> {
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
         .init();
 
-    if std::env::args().any(|arg| arg == "--demo") {
+    let mut args = std::env::args().skip(1);
+    if args.any(|arg| arg == "--demo") {
         return demo::run().await;
+    }
+    let mut args = std::env::args().skip(1);
+    while let Some(arg) = args.next() {
+        if arg == "--demo-report" {
+            let path = args
+                .next()
+                .unwrap_or_else(|| "target/tendril-demo-report.html".to_string());
+            let path = demo::write_html(path).await?;
+            println!("report: {}", path.display());
+            return Ok(());
+        }
     }
 
     let cfg = config::load("tendril.toml")?;
