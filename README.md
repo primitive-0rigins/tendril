@@ -148,6 +148,12 @@ cargo clippy --workspace --all-targets
 Run the self-contained local demo:
 
 ```bash
+./scripts/demo.sh
+```
+
+Or run the individual demo commands:
+
+```bash
 cargo run -p tendril-daemon --bin tendril -- --demo
 cargo run -p tendril-daemon --bin tendril -- --demo-report target/tendril-demo-report.html
 ```
@@ -155,6 +161,7 @@ cargo run -p tendril-daemon --bin tendril -- --demo-report target/tendril-demo-r
 The demo simulates two Pulse beacons joining an in-memory mesh, refreshes one heartbeat,
 marks the stale node as recovering, and prints a JSON report.
 The report command writes the same proof path as a static HTML artifact.
+The script writes all generated artifacts to `target/tendril-demo/`.
 
 ### Run Tendril (mesh daemon)
 
@@ -227,6 +234,7 @@ heartbeat_interval_secs = 10
 - [x] Unit tests for protocol, node state, mesh registry, and recovery helpers
 - [x] Self-contained demo mode
 - [x] Static HTML demo report
+- [x] One-command demo script
 - [x] Local Pulse announcement and MeshInvite protocol path
 - [x] Daemon-side Pulse handling test with real UDP sockets
 - [x] Wake-on-LAN packet path for known MAC addresses
