@@ -3,7 +3,7 @@ use tendril_core::protocol::Message;
 use tokio::net::UdpSocket;
 use tracing::info;
 
-const MULTICAST_ADDR: &str = "224.0.0.251:7778";
+const DEFAULT_TARGET_ADDR: &str = "255.255.255.255:7777";
 const INTERVAL_SECS: u64 = 15;
 
 #[tokio::main]
@@ -15,6 +15,9 @@ async fn main() -> Result<()> {
     let node_name = std::env::var("PULSE_NODE_NAME").unwrap_or_else(|_| hostname());
     let addr = std::env::var("PULSE_ADDR").unwrap_or_else(|_| local_ip());
     let mac_addr = std::env::var("PULSE_MAC").ok();
+    let target_addr =
+        std::env::var("PULSE_TARGET").unwrap_or_else(|_| DEFAULT_TARGET_ADDR.to_string());
+    let once = std::env::var("PULSE_ONCE").ok().as_deref() == Some("1");
 
     info!(
         "Pulse beacon starting — name: {}, addr: {}",
@@ -32,11 +35,16 @@ async fn main() -> Result<()> {
         };
 
         let payload = serde_json::to_vec(&msg)?;
-        socket.send_to(&payload, MULTICAST_ADDR).await?;
-        info!("Pulse sent to {}", MULTICAST_ADDR);
+        socket.send_to(&payload, &target_addr).await?;
+        info!("Pulse sent to {}", target_addr);
+        if once {
+            break;
+        }
 
         tokio::time::sleep(tokio::time::Duration::from_secs(INTERVAL_SECS)).await;
     }
+
+    Ok(())
 }
 
 fn hostname() -> String {

@@ -19,8 +19,8 @@ async fn main() -> Result<()> {
 
     let cfg = config::load("tendril.toml")?;
     info!(
-        "Tendril daemon starting — mesh: {}, node: {}, beacon: {}",
-        cfg.mesh_name, cfg.node_name, cfg.beacon_multicast
+        "Tendril daemon starting — mesh: {}, node: {}, listen: {}",
+        cfg.mesh_name, cfg.node_name, cfg.listen_addr
     );
 
     let mesh = mesh::Mesh::new(cfg.clone());

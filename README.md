@@ -12,6 +12,17 @@ Tendril is an early Rust workspace for local mesh discovery, heartbeats, recover
 and a separate Pulse beacon. The current codebase focuses on the local-network path first;
 relay, WireGuard, NAT traversal, and dashboard work are tracked in the roadmap.
 
+Working today:
+
+1. Shared JSON protocol types for Pulse announcements, mesh invites, heartbeats, and recovery events
+2. In-memory mesh registry with node health state
+3. Heartbeat refresh path for known nodes
+4. Stale-node recovery scan that marks silent nodes as `Recovering`
+5. Wake-on-LAN packet construction for nodes with a MAC address
+6. UDP listener path that accepts Pulse announcements and sends mesh invites
+7. Standalone Pulse beacon binary
+8. Self-contained `tendril --demo` mode with JSON output
+
 ---
 
 ## The Problem
@@ -35,7 +46,7 @@ The mesh daemon. Runs on every node in your network. It:
 ### Pulse
 The beacon. A small, standalone program you drop on any machine. It:
 - Knows nothing about the mesh
-- Broadcasts a UDP announcement on the local network every 15 seconds: *"I exist"*
+- Broadcasts a UDP announcement every 15 seconds: *"I exist"*
 - Waits
 
 When Tendril hears a Pulse, it reaches out, assigns the node an ID, and sends it the peer list. The node is in. No manual configuration.
@@ -154,11 +165,14 @@ RUST_LOG=info ./target/release/tendril
 ```bash
 PULSE_NODE_NAME=my-machine \
 PULSE_ADDR=192.168.1.50 \
+PULSE_TARGET=255.255.255.255:7777 \
 PULSE_MAC=aa:bb:cc:dd:ee:ff \
 RUST_LOG=info ./target/release/pulse
 ```
 
 The mesh will find it within 15 seconds.
+
+For a one-shot local smoke test, set `PULSE_ONCE=1` and `PULSE_TARGET=127.0.0.1:7777`.
 
 ---
 
@@ -170,28 +184,32 @@ The mesh will find it within 15 seconds.
 mesh_name = "tendril"
 node_name = "node-1"
 listen_addr = "0.0.0.0:7777"
-beacon_multicast = "224.0.0.251:7778"
 heartbeat_timeout_secs = 30
 heartbeat_interval_secs = 10
 ```
 
 ---
 
-## Architecture Decisions
+## Current Decisions
 
 | Concern | Decision |
 |---------|----------|
-| Encryption | `boringtun` — pure Rust WireGuard, no kernel module, runs anywhere |
-| NAT traversal | UDP hole-punch attempted first, `tendril-relay` as fallback |
-| Relay | Any node with a public IP can act as relay — no single point of failure |
-| Key storage | Encrypted file (`~/.tendril/keys`) — portable, protected at rest |
-| Pulse identity | Stateful — remembers keypair and assigned node ID across restarts |
-| Relay transport | WebSocket over TCP — punches through firewalls, works on port 443 |
+| Language | Rust workspace with small focused crates |
+| Local transport | JSON messages over UDP |
+| Discovery model | Pulse announces itself; Tendril responds with a mesh invite |
+| Node health | `Alive`, `Recovering`, or `Dead` |
+| Recovery MVP | Mark stale nodes as recovering; send Wake-on-LAN when MAC is known |
+| Demo proof | `tendril --demo` runs without network setup |
 
 ---
 
 ## Roadmap
 
+- [x] Workspace compiles with serializable protocol types
+- [x] Unit tests for protocol, node state, mesh registry, and recovery helpers
+- [x] Self-contained demo mode
+- [x] Local Pulse announcement and MeshInvite protocol path
+- [x] Wake-on-LAN packet path for known MAC addresses
 - [ ] WireGuard keypair generation via `boringtun` (per-node, encrypted at rest)
 - [ ] `tendril-relay` binary — WebSocket broker, introduction only, blind to traffic
 - [ ] UDP hole-punch NAT traversal with relay fallback

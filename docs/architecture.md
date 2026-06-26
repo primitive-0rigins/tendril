@@ -1,128 +1,92 @@
 # Tendril Architecture
 
-## Design Principles
+Tendril is a compact Rust workspace for experimenting with local mesh discovery and recovery.
+The current implementation proves the local-network path first: Pulse announces itself,
+Tendril registers the node, heartbeats keep nodes alive, and stale nodes move into recovery.
 
-1. **Inversion of onboarding** — nodes don't find the mesh, the mesh finds them.
-2. **Self-healing** — the mesh responds to failure without human intervention.
-3. **Relay-brokered, not relay-dependent** — the relay introduces nodes but steps out of all traffic.
-4. **End-to-end encrypted** — private keys never leave the node. The relay is blind to all traffic.
-5. **Minimal footprint** — Pulse is a single binary, zero config required.
+Relay, WireGuard, NAT traversal, persistent identity, and dashboard work are future layers.
 
 ---
 
-## Three Binaries
+## Current Pieces
 
-| Binary | Role |
-|--------|------|
-| `pulse` | Beacon — announces presence, holds its own keypair |
-| `tendril` | Mesh daemon — manages peers, self-heals, holds its own keypair |
-| `tendril-relay` | Broker only — introduces nodes, never touches traffic |
-
----
-
-## Key Model
-
-Each node (both `tendril` daemons and `pulse` beacons) generates a **WireGuard keypair on first run**.
-
-- The **private key never leaves the node**.
-- The relay only ever sees: public key, mesh key, node name, and address.
-- After introduction, the relay steps out. All traffic is node-to-node over an encrypted WireGuard tunnel.
-
-If the relay is compromised, an attacker sees public keys and node names — nothing else. They cannot read traffic or impersonate nodes.
+| Crate | Role |
+|---|---|
+| `tendril-core` | Shared node state and JSON protocol messages |
+| `tendril-daemon` | Mesh registry, UDP listener, heartbeat watcher, recovery flow |
+| `pulse` | Standalone beacon that broadcasts Pulse announcements |
 
 ---
 
-## Message Flow
+## Local Discovery Flow
 
-### Cross-Network Node Discovery (via Relay)
-
-```
-Node A (tendril)        Relay              Node B (pulse)
-      │                   │                     │
-      │── register ───────►│◄── pulse_announce ──│
-      │   {pub_key,        │    {pub_key,         │
-      │    mesh_key,       │     mesh_key,        │
-      │    name, addr}     │     name, addr}      │
-      │                   │                     │
-      │         relay verifies mesh_key on both  │
-      │                   │                     │
-      │◄── introduction ──│                     │
-      │    {name, addr,    │                     │
-      │     pub_key}       │                     │
-      │                   │                     │
-      │── WireGuard handshake ─────────────────►│
-      │   (direct P2P — relay steps out)        │
-      │                   │                     │
-      │◄══════════════════════════════════════►│
-      │         encrypted tunnel (WireGuard)    │
+```text
+Pulse                          Tendril daemon
+  |                                  |
+  |-- pulse_announce --------------> |
+  |   {node_name, addr, mac_addr}    |
+  |                                  | register Node::Alive
+  |                                  | build peer list
+  |<---------------- mesh_invite --- |
+  |   {mesh_id, assigned_id, peers}  |
 ```
 
-### Local Network Discovery (no relay needed)
+Messages are JSON over UDP. The current protocol is intentionally small and serializable:
 
-On the same subnet, `pulse` broadcasts via UDP multicast. `tendril` hears it and initiates directly — no relay involved. Same key verification applies.
-
-```
-Pulse                          Tendril Daemon
-  │                                  │
-  │── PulseAnnounce (multicast) ────►│
-  │   {name, addr, pub_key,          │
-  │    mesh_key, mac}                │
-  │                             verify mesh_key
-  │                             WireGuard handshake
-  │◄────────────────── MeshInvite ───│
-  │   {mesh_id, assigned_id, peers}  │
-  │                                  │
-  │── Heartbeat ───────────────────►│  (every N seconds)
-```
-
-### Self-Healing / Recovery
-
-```
-Tendril Daemon
-  │
-  ├── heartbeat_watcher (background loop)
-  │       │
-  │       ├── node.last_seen > timeout?
-  │       │       │
-  │       │       Yes
-  │       │       │
-  │       │       ├── node.mac_addr known?
-  │       │       │       │
-  │       │       │       Yes ──► send WoL magic packet (UDP broadcast :9)
-  │       │       │       No  ──► log, mark Recovering
-  │       │       │
-  │       │       └── mark node state: Recovering
-  │       │
-  │       └── heartbeat received while Recovering ──► mark Alive
-  │
-  └── node remains Dead after N recovery attempts ──► remove from registry
-```
+- `pulse_announce`
+- `mesh_invite`
+- `heartbeat`
+- `recovery_attempt`
 
 ---
 
-## Ports
+## Health And Recovery
 
-| Port | Protocol | Purpose |
-|------|----------|---------|
-| 7777 | UDP | Tendril daemon listener (unicast) |
-| 7778 | UDP multicast | Pulse beacon announcements (local network only) |
-| 7779 | TCP/UDP | Relay server (public-facing) |
-| 51820 | UDP | WireGuard tunnels (standard port) |
-| 9    | UDP broadcast | Wake-on-LAN magic packets |
+```text
+Node joins as Alive
+      |
+      v
+Heartbeat refreshes last_seen
+      |
+      v
+Watcher sees last_seen > timeout
+      |
+      v
+MAC known? yes -> send Wake-on-LAN packet
+      |
+      v
+Mark node Recovering
+      |
+      v
+Future heartbeat marks it Alive again
+```
+
+The current recovery implementation sends a Wake-on-LAN magic packet when a MAC address is
+known. If no MAC is known, it still marks the node as `Recovering`, which keeps the state
+machine observable without pretending full recovery has happened.
 
 ---
 
-## Mesh Key
+## Demo Mode
 
-The mesh key is a shared secret configured on every node and the relay. It is:
-- Required to register with the relay
-- Required to be accepted by a `tendril` daemon on local network
-- **Not** a substitute for WireGuard encryption — it is only a membership gate
+`tendril --demo` runs without network setup. It creates an in-memory mesh, registers two
+simulated Pulse nodes, refreshes one heartbeat, marks the stale node as recovering, and prints a
+JSON report.
 
-Think of it as the door. WireGuard is the vault inside.
+```bash
+cargo run -p tendril-daemon --bin tendril -- --demo
+```
+
+This is the portfolio proof path for the current MVP.
 
 ---
 
-## What Remains to Solve Before Building
+## Roadmap Layers
 
-See `docs/open-questions.md`.
+- Persistent registry across daemon restarts
+- Stateful Pulse identity
+- Mesh key gate
+- WireGuard key generation and tunnel setup
+- NAT traversal and relay introduction
+- CLI status commands
+- TUI or static report for node state

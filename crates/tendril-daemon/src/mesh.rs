@@ -97,7 +97,6 @@ mod tests {
             mesh_name: "test".to_string(),
             node_name: "node-a".to_string(),
             listen_addr: "127.0.0.1:0".to_string(),
-            beacon_multicast: "224.0.0.251:7778".to_string(),
             heartbeat_timeout_secs: 30,
             heartbeat_interval_secs: 10,
         }

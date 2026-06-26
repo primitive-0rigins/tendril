@@ -7,8 +7,6 @@ pub struct Config {
     pub mesh_name: String,
     pub node_name: String,
     pub listen_addr: String,
-    /// Multicast address Pulse beacons broadcast on.
-    pub beacon_multicast: String,
     /// Seconds before a silent node is marked Recovering.
     pub heartbeat_timeout_secs: u64,
     /// Seconds between heartbeat checks.
@@ -24,7 +22,6 @@ const DEFAULT_CONFIG: &str = r#"
 mesh_name = "tendril"
 node_name = "node-1"
 listen_addr = "0.0.0.0:7777"
-beacon_multicast = "224.0.0.251:7778"
 heartbeat_timeout_secs = 30
 heartbeat_interval_secs = 10
 "#;

@@ -27,7 +27,6 @@ pub async fn run() -> Result<()> {
         mesh_name: "tendril-demo".to_string(),
         node_name: "demo-daemon".to_string(),
         listen_addr: "127.0.0.1:7777".to_string(),
-        beacon_multicast: "224.0.0.251:7778".to_string(),
         heartbeat_timeout_secs: 5,
         heartbeat_interval_secs: 1,
     };
