@@ -50,6 +50,29 @@ impl Mesh {
     pub async fn config(&self) -> Config {
         self.0.read().await.config.clone()
     }
+
+    pub async fn recover_silent_nodes_once(&self) -> Vec<Node> {
+        let timeout = self.config().await.heartbeat_timeout_secs;
+        let now = Utc::now();
+        let nodes = self.node_list().await;
+        let mut recovering = Vec::new();
+
+        for node in nodes {
+            let elapsed = (now - node.last_seen).num_seconds() as u64;
+            if elapsed > timeout && node.state == NodeState::Alive {
+                warn!("Node silent: {} — starting recovery", node.name);
+                recovery::attempt(&node).await;
+
+                let mut inner = self.0.write().await;
+                if let Some(n) = inner.nodes.get_mut(&node.id) {
+                    n.state = NodeState::Recovering;
+                    recovering.push(n.clone());
+                }
+            }
+        }
+
+        recovering
+    }
 }
 
 /// Background task — watches for silent nodes and triggers recovery.
@@ -58,22 +81,7 @@ pub async fn run_heartbeat_watcher(mesh: Mesh) {
         let interval = mesh.config().await.heartbeat_interval_secs;
         tokio::time::sleep(tokio::time::Duration::from_secs(interval)).await;
 
-        let timeout = mesh.config().await.heartbeat_timeout_secs;
-        let now = Utc::now();
-
-        let nodes = mesh.node_list().await;
-        for node in nodes {
-            let elapsed = (now - node.last_seen).num_seconds() as u64;
-            if elapsed > timeout && node.state == NodeState::Alive {
-                warn!("Node silent: {} — starting recovery", node.name);
-                recovery::attempt(&node).await;
-
-                let mut inner = mesh.0.write().await;
-                if let Some(n) = inner.nodes.get_mut(&node.id) {
-                    n.state = NodeState::Recovering;
-                }
-            }
-        }
+        mesh.recover_silent_nodes_once().await;
     }
 }
 
@@ -123,5 +131,21 @@ mod tests {
         let nodes = mesh.node_list().await;
         assert_eq!(nodes[0].state, NodeState::Alive);
         assert!(nodes[0].last_seen > Utc::now() - Duration::seconds(5));
+    }
+
+    #[tokio::test]
+    async fn recover_silent_nodes_once_marks_stale_node_recovering() {
+        let mesh = Mesh::new(test_config());
+        let mut node = Node::new("peer-a", "127.0.0.1:7777", None);
+        node.last_seen = Utc::now() - Duration::seconds(60);
+        let node_id = node.id;
+        mesh.register(node).await;
+
+        let recovering = mesh.recover_silent_nodes_once().await;
+
+        let nodes = mesh.node_list().await;
+        assert_eq!(recovering.len(), 1);
+        assert_eq!(recovering[0].id, node_id);
+        assert_eq!(nodes[0].state, NodeState::Recovering);
     }
 }

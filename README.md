@@ -131,6 +131,15 @@ cargo fmt --check
 cargo clippy --workspace --all-targets
 ```
 
+Run the self-contained local demo:
+
+```bash
+cargo run -p tendril-daemon --bin tendril -- --demo
+```
+
+The demo simulates two Pulse beacons joining an in-memory mesh, refreshes one heartbeat,
+marks the stale node as recovering, and prints a JSON report.
+
 ### Run Tendril (mesh daemon)
 
 ```bash
