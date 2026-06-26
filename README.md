@@ -24,6 +24,7 @@ Working today:
 8. Self-contained `tendril --demo` mode with JSON output
 9. Static HTML demo report
 10. Optional local JSON registry persistence with `--registry`
+11. One-shot `--status` and `--nodes` registry inspection commands
 
 ---
 
@@ -170,6 +171,13 @@ Persist the local registry across clean daemon restarts:
 RUST_LOG=info ./target/release/tendril --registry .tendril/registry.json
 ```
 
+Inspect registry state without starting the daemon:
+
+```bash
+./target/release/tendril --status --registry .tendril/registry.json
+./target/release/tendril --nodes --registry .tendril/registry.json
+```
+
 ### Run Pulse (beacon — on a new machine)
 
 ```bash
@@ -223,6 +231,7 @@ heartbeat_interval_secs = 10
 - [x] Daemon-side Pulse handling test with real UDP sockets
 - [x] Wake-on-LAN packet path for known MAC addresses
 - [x] Local JSON registry persistence
+- [x] Registry inspection commands
 - [ ] WireGuard keypair generation via `boringtun` (per-node, encrypted at rest)
 - [ ] `tendril-relay` binary — WebSocket broker, introduction only, blind to traffic
 - [ ] UDP hole-punch NAT traversal with relay fallback

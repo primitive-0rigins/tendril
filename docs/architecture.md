@@ -94,6 +94,13 @@ On startup, existing nodes are loaded into the in-memory mesh. On clean shutdown
 node list is saved back to the registry file. This is intentionally local and inspectable; a
 distributed durable registry is not implemented yet.
 
+The same file can be inspected without starting the daemon:
+
+```bash
+tendril --status --registry .tendril/registry.json
+tendril --nodes --registry .tendril/registry.json
+```
+
 ---
 
 ## Roadmap Layers
