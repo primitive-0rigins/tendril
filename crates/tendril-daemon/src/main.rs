@@ -1,7 +1,7 @@
 mod config;
+mod listener;
 mod mesh;
 mod recovery;
-mod listener;
 
 use anyhow::Result;
 use tracing::info;
@@ -13,7 +13,10 @@ async fn main() -> Result<()> {
         .init();
 
     let cfg = config::load("tendril.toml")?;
-    info!("Tendril daemon starting — mesh: {}", cfg.mesh_name);
+    info!(
+        "Tendril daemon starting — mesh: {}, node: {}, beacon: {}",
+        cfg.mesh_name, cfg.node_name, cfg.beacon_multicast
+    );
 
     let mesh = mesh::Mesh::new(cfg.clone());
 

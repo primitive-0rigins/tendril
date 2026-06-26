@@ -12,13 +12,14 @@ async fn main() -> Result<()> {
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
         .init();
 
-    let node_name = std::env::var("PULSE_NODE_NAME")
-        .unwrap_or_else(|_| hostname());
-    let addr = std::env::var("PULSE_ADDR")
-        .unwrap_or_else(|_| local_ip());
+    let node_name = std::env::var("PULSE_NODE_NAME").unwrap_or_else(|_| hostname());
+    let addr = std::env::var("PULSE_ADDR").unwrap_or_else(|_| local_ip());
     let mac_addr = std::env::var("PULSE_MAC").ok();
 
-    info!("Pulse beacon starting — name: {}, addr: {}", node_name, addr);
+    info!(
+        "Pulse beacon starting — name: {}, addr: {}",
+        node_name, addr
+    );
 
     let socket = UdpSocket::bind("0.0.0.0:0").await?;
     socket.set_broadcast(true)?;

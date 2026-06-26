@@ -76,3 +76,52 @@ pub async fn run_heartbeat_watcher(mesh: Mesh) {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Mesh;
+    use crate::config::Config;
+    use chrono::{Duration, Utc};
+    use tendril_core::node::{Node, NodeState};
+
+    fn test_config() -> Config {
+        Config {
+            mesh_name: "test".to_string(),
+            node_name: "node-a".to_string(),
+            listen_addr: "127.0.0.1:0".to_string(),
+            beacon_multicast: "224.0.0.251:7778".to_string(),
+            heartbeat_timeout_secs: 30,
+            heartbeat_interval_secs: 10,
+        }
+    }
+
+    #[tokio::test]
+    async fn register_adds_node_to_mesh() {
+        let mesh = Mesh::new(test_config());
+        let node = Node::new("peer-a", "127.0.0.1:7777", None);
+        let node_id = node.id;
+
+        mesh.register(node).await;
+
+        let nodes = mesh.node_list().await;
+        assert_eq!(nodes.len(), 1);
+        assert_eq!(nodes[0].id, node_id);
+        assert_eq!(nodes[0].name, "peer-a");
+    }
+
+    #[tokio::test]
+    async fn heartbeat_marks_recovering_node_alive() {
+        let mesh = Mesh::new(test_config());
+        let mut node = Node::new("peer-a", "127.0.0.1:7777", None);
+        node.state = NodeState::Recovering;
+        node.last_seen = Utc::now() - Duration::seconds(60);
+        let node_id = node.id;
+        mesh.register(node).await;
+
+        mesh.heartbeat(node_id).await;
+
+        let nodes = mesh.node_list().await;
+        assert_eq!(nodes[0].state, NodeState::Alive);
+        assert!(nodes[0].last_seen > Utc::now() - Duration::seconds(5));
+    }
+}

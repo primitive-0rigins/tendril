@@ -48,3 +48,26 @@ fn parse_mac(mac: &str) -> anyhow::Result<[u8; 6]> {
 
     Ok([parts[0], parts[1], parts[2], parts[3], parts[4], parts[5]])
 }
+
+#[cfg(test)]
+mod tests {
+    use super::parse_mac;
+
+    #[test]
+    fn parse_mac_accepts_colons_and_dashes() {
+        assert_eq!(
+            parse_mac("aa:bb:cc:dd:ee:ff").unwrap(),
+            [0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]
+        );
+        assert_eq!(
+            parse_mac("AA-BB-CC-DD-EE-FF").unwrap(),
+            [0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]
+        );
+    }
+
+    #[test]
+    fn parse_mac_rejects_bad_values() {
+        assert!(parse_mac("aa:bb:cc").is_err());
+        assert!(parse_mac("aa:bb:cc:dd:ee:zz").is_err());
+    }
+}

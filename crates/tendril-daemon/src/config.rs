@@ -16,8 +16,7 @@ pub struct Config {
 }
 
 pub fn load(path: &str) -> Result<Config> {
-    let raw = fs::read_to_string(path)
-        .unwrap_or_else(|_| DEFAULT_CONFIG.to_string());
+    let raw = fs::read_to_string(path).unwrap_or_else(|_| DEFAULT_CONFIG.to_string());
     Ok(toml::from_str(&raw)?)
 }
 

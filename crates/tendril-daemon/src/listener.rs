@@ -25,16 +25,15 @@ pub async fn run(mesh: Mesh, addr: String) -> Result<()> {
     }
 }
 
-async fn handle(
-    data: &[u8],
-    src: SocketAddr,
-    mesh: &Mesh,
-    socket: &UdpSocket,
-) -> Result<()> {
+async fn handle(data: &[u8], src: SocketAddr, mesh: &Mesh, socket: &UdpSocket) -> Result<()> {
     let msg: Message = serde_json::from_slice(data)?;
 
     match msg {
-        Message::PulseAnnounce { node_name, addr, mac_addr } => {
+        Message::PulseAnnounce {
+            node_name,
+            addr,
+            mac_addr,
+        } => {
             info!("Pulse detected: {} at {}", node_name, addr);
 
             let node = Node::new(&node_name, &addr, mac_addr.as_deref());
