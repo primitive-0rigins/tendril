@@ -23,6 +23,7 @@ Working today:
 7. Standalone Pulse beacon binary
 8. Self-contained `tendril --demo` mode with JSON output
 9. Static HTML demo report
+10. Optional local JSON registry persistence with `--registry`
 
 ---
 
@@ -163,6 +164,12 @@ cp tendril.example.toml tendril.toml
 RUST_LOG=info ./target/release/tendril
 ```
 
+Persist the local registry across clean daemon restarts:
+
+```bash
+RUST_LOG=info ./target/release/tendril --registry .tendril/registry.json
+```
+
 ### Run Pulse (beacon — on a new machine)
 
 ```bash
@@ -215,11 +222,11 @@ heartbeat_interval_secs = 10
 - [x] Local Pulse announcement and MeshInvite protocol path
 - [x] Daemon-side Pulse handling test with real UDP sockets
 - [x] Wake-on-LAN packet path for known MAC addresses
+- [x] Local JSON registry persistence
 - [ ] WireGuard keypair generation via `boringtun` (per-node, encrypted at rest)
 - [ ] `tendril-relay` binary — WebSocket broker, introduction only, blind to traffic
 - [ ] UDP hole-punch NAT traversal with relay fallback
 - [ ] Any tendril node with public IP can elect itself as relay
-- [ ] Persistent node registry (survive daemon restarts)
 - [ ] Stateful Pulse — remembers keypair and assigned ID
 - [ ] Mesh key gate on both local and relay paths
 - [ ] CLI — `tendril status`, `tendril nodes`, `tendril eject <node>`

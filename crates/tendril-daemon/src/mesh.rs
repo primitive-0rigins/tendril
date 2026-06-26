@@ -19,10 +19,14 @@ struct MeshInner {
 
 impl Mesh {
     pub fn new(config: Config) -> Self {
+        Self::with_nodes(config, Vec::new())
+    }
+
+    pub fn with_nodes(config: Config, nodes: Vec<Node>) -> Self {
         Mesh(Arc::new(RwLock::new(MeshInner {
             id: Uuid::new_v4(),
             config,
-            nodes: HashMap::new(),
+            nodes: nodes.into_iter().map(|node| (node.id, node)).collect(),
         })))
     }
 
@@ -114,6 +118,18 @@ mod tests {
         assert_eq!(nodes.len(), 1);
         assert_eq!(nodes[0].id, node_id);
         assert_eq!(nodes[0].name, "peer-a");
+    }
+
+    #[tokio::test]
+    async fn with_nodes_hydrates_existing_registry() {
+        let node = Node::new("peer-a", "127.0.0.1:7777", None);
+        let node_id = node.id;
+        let mesh = Mesh::with_nodes(test_config(), vec![node]);
+
+        let nodes = mesh.node_list().await;
+
+        assert_eq!(nodes.len(), 1);
+        assert_eq!(nodes[0].id, node_id);
     }
 
     #[tokio::test]

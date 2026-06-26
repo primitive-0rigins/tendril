@@ -82,9 +82,22 @@ This is the portfolio proof path for the current MVP.
 
 ---
 
+## Registry Persistence
+
+The daemon can persist the local registry as JSON:
+
+```bash
+tendril --registry .tendril/registry.json
+```
+
+On startup, existing nodes are loaded into the in-memory mesh. On clean shutdown, the current
+node list is saved back to the registry file. This is intentionally local and inspectable; a
+distributed durable registry is not implemented yet.
+
+---
+
 ## Roadmap Layers
 
-- Persistent registry across daemon restarts
 - Stateful Pulse identity
 - Mesh key gate
 - WireGuard key generation and tunnel setup
