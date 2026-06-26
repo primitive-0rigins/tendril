@@ -6,6 +6,14 @@
 
 ---
 
+## Status
+
+Tendril is an early Rust workspace for local mesh discovery, heartbeats, recovery flow,
+and a separate Pulse beacon. The current codebase focuses on the local-network path first;
+relay, WireGuard, NAT traversal, and dashboard work are tracked in the roadmap.
+
+---
+
 ## The Problem
 
 Most mesh systems are push — you configure a node, tell it where the mesh is, and manually onboard it. If a node goes silent, someone has to notice and act.
@@ -110,7 +118,17 @@ tendril/
 ### Build
 
 ```bash
+git clone https://github.com/primitive-0rigins/tendril.git
+cd tendril
 cargo build --release
+```
+
+For development:
+
+```bash
+cargo test
+cargo fmt --check
+cargo clippy --workspace --all-targets
 ```
 
 ### Run Tendril (mesh daemon)
