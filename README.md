@@ -213,6 +213,7 @@ heartbeat_interval_secs = 10
 - [x] Self-contained demo mode
 - [x] Static HTML demo report
 - [x] Local Pulse announcement and MeshInvite protocol path
+- [x] Daemon-side Pulse handling test with real UDP sockets
 - [x] Wake-on-LAN packet path for known MAC addresses
 - [ ] WireGuard keypair generation via `boringtun` (per-node, encrypted at rest)
 - [ ] `tendril-relay` binary — WebSocket broker, introduction only, blind to traffic
