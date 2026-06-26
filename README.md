@@ -226,6 +226,8 @@ heartbeat_interval_secs = 10
 | Recovery MVP | Mark stale nodes as recovering; send Wake-on-LAN when MAC is known |
 | Demo proof | `tendril --demo` runs without network setup |
 
+Additional implementation notes: [docs/project-notes.md](docs/project-notes.md)
+
 ---
 
 ## Roadmap
