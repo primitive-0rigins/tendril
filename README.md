@@ -1,10 +1,33 @@
 # Tendril + Pulse
 
+[![CI](https://github.com/primitive-0rigins/tendril/actions/workflows/ci.yml/badge.svg)](https://github.com/primitive-0rigins/tendril/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Rust](https://img.shields.io/badge/Rust-000000?logo=rust&logoColor=white)
+
 **A self-healing, self-discovering mesh network — built from scratch in Rust.**
 
 > The mesh stays alive on its own. It grows on its own.
 
+![Tendril portfolio card](docs/portfolio-card.svg)
+
 ---
+
+## Why This Matters
+
+Tendril shows local infrastructure work in a small, inspectable Rust codebase. It proves
+protocol modeling, UDP message handling, node liveness tracking, recovery state, persistence,
+and a repeatable demo without requiring cloud services or a large distributed setup.
+
+## Quick Demo
+
+```bash
+git clone https://github.com/primitive-0rigins/tendril.git
+cd tendril
+cargo test --workspace
+./scripts/demo.sh
+```
+
+The demo writes a JSON proof path and static HTML report under `target/tendril-demo/`.
 
 ## Status
 
