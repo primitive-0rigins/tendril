@@ -1,0 +1,21 @@
+[package]
+name = "tendril-daemon"
+version = "0.1.0"
+edition = "2021"
+description = "Tendril mesh daemon — self-healing, self-discovering"
+
+[[bin]]
+name = "tendril"
+path = "src/main.rs"
+
+[dependencies]
+tendril-core = { path = "../tendril-core" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }

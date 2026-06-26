@@ -1,0 +1,12 @@
+[package]
+name = "tendril-core"
+version = "0.1.0"
+edition = "2021"
+description = "Shared types and protocol for the Tendril mesh"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }
